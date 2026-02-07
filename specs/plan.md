@@ -106,7 +106,21 @@ Set up D1 database for persisting analysis results. Save each completed analysis
 - ESSENTIAL that a given user, as per google oauth, can only see their own prior analyses
 ---
 
-## Issue 8: Polish and error handling
+## Issue 8: Track clicked unsubscribe links
+**Status:** Done
+
+Mark unsubscribe links as clicked when the user opens them. Persist the clicked state to D1 so it survives reloads and shows in history views.
+
+**Scope:**
+- Migration: add `clicked_at` column (nullable timestamp) to `analysis_senders` table
+- On link click, fire a `PATCH /api/analyses/[id]/senders` request (using sender email as identifier) to record the click
+- Update UI to visually distinguish clicked links (muted opacity, strikethrough sender name, checkmark replacing button)
+- Clicked state displays in both current results view and when revisiting from history
+- Results page shows "New Analysis" link instead of date picker/form
+- Callback route passes `analysis_id` in URL params for click tracking on fresh analyses
+---
+
+## Issue 9: Polish and error handling
 **Status:** Not started
 
 Handle edge cases, improve UX, and harden the app.

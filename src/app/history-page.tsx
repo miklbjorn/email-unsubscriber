@@ -44,7 +44,10 @@ export default function HistoryPage() {
         <p className="text-xs text-foreground/40">
           Analysis from {selected.dateRangeStart} to {selected.dateRangeEnd}
         </p>
-        <AnalysisResults analysis={toAnalysisResult(selected)} />
+        <AnalysisResults
+          analysis={toAnalysisResult(selected)}
+          analysisId={selected.id}
+        />
       </div>
     );
   }

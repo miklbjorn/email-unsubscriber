@@ -74,9 +74,10 @@ export async function GET(request: NextRequest) {
 
     // Save to D1 (best-effort — don't fail the whole request if DB is unavailable)
     const db = (env as unknown as Record<string, unknown>).DB as D1Database | undefined;
+    let analysisId: string | null = null;
     if (db) {
       try {
-        await saveAnalysis(db, {
+        analysisId = await saveAnalysis(db, {
           userEmail,
           dateRangeStart: after,
           dateRangeEnd: before,
@@ -97,6 +98,9 @@ export async function GET(request: NextRequest) {
       auth: "success",
       results: analysisBase64,
     });
+    if (analysisId) {
+      resultParams.set("analysis_id", analysisId);
+    }
 
     const response = NextResponse.redirect(`${origin}?${resultParams}`);
 

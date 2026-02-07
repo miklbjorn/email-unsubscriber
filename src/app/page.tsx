@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { AnalysisResult } from "@/lib/analysis";
 import AnalyzeForm from "./analyze-form";
 import AnalysisResults from "./analysis-results";
@@ -21,6 +22,7 @@ export default async function Home({
 		auth?: string;
 		error?: string;
 		results?: string;
+		analysis_id?: string;
 	}>;
 }) {
 	const params = await searchParams;
@@ -42,12 +44,17 @@ export default async function Home({
 				{/* Results view */}
 				{params.auth === "success" && analysis ? (
 					<>
-						<AnalysisResults analysis={analysis} />
+						<AnalysisResults
+							analysis={analysis}
+							analysisId={params.analysis_id}
+						/>
 						<div className="mt-8">
-							<AnalyzeForm />
-						</div>
-						<div className="mt-8">
-							<HistoryPage />
+							<Link
+								href="/"
+								className="text-sm text-foreground/50 hover:text-foreground transition-colors"
+							>
+								&larr; New Analysis
+							</Link>
 						</div>
 					</>
 				) : (

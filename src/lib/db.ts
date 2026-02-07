@@ -110,7 +110,7 @@ export async function getAnalysis(
 
   const sendersResult = await db
     .prepare(
-      `SELECT sender_name, sender_email, email_count, unsubscribe_url, unsubscribe_type
+      `SELECT sender_name, sender_email, email_count, unsubscribe_url, unsubscribe_type, clicked_at
        FROM analysis_senders WHERE analysis_id = ? ORDER BY email_count DESC`,
     )
     .bind(id)
@@ -122,6 +122,7 @@ export async function getAnalysis(
     messageCount: row.email_count as number,
     unsubscribeUrl: row.unsubscribe_url as string,
     linkType: row.unsubscribe_type as UnsubscribeLinkType,
+    clickedAt: (row.clicked_at as string) ?? null,
   }));
 
   return {
@@ -136,4 +137,29 @@ export async function getAnalysis(
     createdAt: analysisRow.created_at as string,
     senders,
   };
+}
+
+export async function markSenderClicked(
+  db: D1Database,
+  analysisId: string,
+  senderEmail: string,
+  userEmail: string,
+): Promise<boolean> {
+  // Verify ownership: the analysis must belong to this user
+  const analysis = await db
+    .prepare(`SELECT id FROM analyses WHERE id = ? AND user_email = ?`)
+    .bind(analysisId, userEmail)
+    .first();
+
+  if (!analysis) return false;
+
+  const result = await db
+    .prepare(
+      `UPDATE analysis_senders SET clicked_at = datetime('now')
+       WHERE analysis_id = ? AND sender_email = ? AND clicked_at IS NULL`,
+    )
+    .bind(analysisId, senderEmail)
+    .run();
+
+  return result.meta.changes > 0;
 }

@@ -20,6 +20,7 @@ export interface SenderSummary {
   messageCount: number;
   unsubscribeUrl: string;
   linkType: UnsubscribeLinkType;
+  clickedAt?: string | null;
 }
 
 export interface AnalysisResult {

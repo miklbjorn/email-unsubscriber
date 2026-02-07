@@ -35,11 +35,35 @@ function sortSenders(
 
 export default function AnalysisResults({
   analysis,
+  analysisId,
 }: {
   analysis: AnalysisResult;
+  analysisId?: string;
 }) {
   const [sortBy, setSortBy] = useState<SortField>("count");
+  const [clicked, setClicked] = useState<Set<string>>(
+    () =>
+      new Set(
+        analysis.senders
+          .filter((s) => s.clickedAt)
+          .map((s) => s.email),
+      ),
+  );
   const sorted = sortSenders(analysis.senders, sortBy);
+
+  function handleUnsubscribeClick(senderEmail: string) {
+    setClicked((prev) => new Set(prev).add(senderEmail));
+
+    if (analysisId) {
+      fetch(`/api/analyses/${analysisId}/senders`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ senderEmail }),
+      }).catch(() => {
+        // Best-effort — link already opened in new tab
+      });
+    }
+  }
 
   return (
     <div className="w-full max-w-2xl space-y-6">
@@ -85,14 +109,23 @@ export default function AnalysisResults({
           <div className="space-y-2">
             {sorted.map((sender) => {
               const badge = linkTypeBadge[sender.linkType];
+              const isClicked = clicked.has(sender.email);
               return (
                 <div
                   key={sender.email}
-                  className="flex items-center gap-3 rounded-lg border border-foreground/10 px-4 py-3 text-sm"
+                  className={`flex items-center gap-3 rounded-lg border px-4 py-3 text-sm ${
+                    isClicked
+                      ? "border-foreground/5 opacity-60"
+                      : "border-foreground/10"
+                  }`}
                 >
                   {/* Sender info */}
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{sender.name}</p>
+                    <p
+                      className={`font-medium truncate ${isClicked ? "line-through" : ""}`}
+                    >
+                      {sender.name}
+                    </p>
                     <p className="text-foreground/50 text-xs truncate">
                       {sender.email}
                     </p>
@@ -112,14 +145,21 @@ export default function AnalysisResults({
                   </span>
 
                   {/* Unsubscribe link */}
-                  <a
-                    href={sender.unsubscribeUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs font-medium px-3 py-1.5 rounded bg-foreground text-background hover:opacity-90 transition-opacity whitespace-nowrap"
-                  >
-                    Unsubscribe
-                  </a>
+                  {isClicked ? (
+                    <span className="text-xs font-medium px-3 py-1.5 rounded whitespace-nowrap text-foreground/40">
+                      ✓ Clicked
+                    </span>
+                  ) : (
+                    <a
+                      href={sender.unsubscribeUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => handleUnsubscribeClick(sender.email)}
+                      className="text-xs font-medium px-3 py-1.5 rounded bg-foreground text-background hover:opacity-90 transition-opacity whitespace-nowrap"
+                    >
+                      Unsubscribe
+                    </a>
+                  )}
                 </div>
               );
             })}

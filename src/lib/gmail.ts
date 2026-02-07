@@ -25,6 +25,27 @@ export interface MessageHeaders {
   listUnsubscribePost: string | null;
 }
 
+interface GmailProfileResponse {
+  emailAddress: string;
+}
+
+/**
+ * Fetch the authenticated user's email address from Gmail profile.
+ */
+export async function fetchUserEmail(token: string): Promise<string> {
+  const response = await fetch(`${GMAIL_API_BASE}/profile`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Gmail profile API error (${response.status}): ${text}`);
+  }
+
+  const data: GmailProfileResponse = await response.json();
+  return data.emailAddress;
+}
+
 /**
  * Fetch all message IDs matching a date range from Gmail.
  * Handles pagination automatically (Gmail returns max 500 per page).

@@ -29,12 +29,17 @@ Browser                          Cloudflare Worker (Next.js)
 
 ### Key files
 - `src/lib/oauth.ts` — PKCE helpers, auth URL builder, token exchange
-- `src/lib/gmail.ts` — Gmail API utilities (message list fetching with pagination, header fetching with concurrency control)
+- `src/lib/gmail.ts` — Gmail API utilities (message list fetching with pagination, header fetching with concurrency control, user profile)
 - `src/lib/analysis.ts` — analysis logic: From/List-Unsubscribe header parsing, sender grouping, stats computation
+- `src/lib/db.ts` — D1 database operations: save, list, and get analyses (user-scoped)
 - `src/app/api/auth/login/route.ts` — initiates OAuth, sets cookies (PKCE + date range), redirects to Google
-- `src/app/api/auth/callback/route.ts` — validates state, exchanges code, fetches messages, runs analysis
+- `src/app/api/auth/callback/route.ts` — validates state, exchanges code, fetches messages, runs analysis, saves to D1, sets user session
+- `src/app/api/analyses/route.ts` — list past analyses for the authenticated user
+- `src/app/api/analyses/[id]/route.ts` — get a single analysis with senders
 - `src/app/analyze-form.tsx` — client component with date range picker
 - `src/app/analysis-results.tsx` — client component: overview stats, sortable sender list, unsubscribe links
+- `src/app/analysis-history.tsx` — client component: fetches and displays past analyses list
+- `src/app/history-page.tsx` — client component: orchestrates history list and detail view
 
 ## Analysis flow
 1. Server calls `gmail.users.messages.list` with date filters (paginated)
@@ -42,6 +47,13 @@ Browser                          Cloudflare Worker (Next.js)
 3. Server filters messages with `List-Unsubscribe` header, groups by sender
 4. Results returned to client for display
 5. Results saved to D1 for history
+
+## History
+- Each analysis is saved to D1 (best-effort) after the OAuth callback completes
+- User email fetched from Gmail profile API during callback, stored in httpOnly session cookie
+- History API routes and UI filter by `user_email` — users can only see their own analyses
+- D1 tables: `analyses` (metadata) and `analysis_senders` (per-sender rows)
+- Migration: `migrations/0001_create_tables.sql`
 
 ## Key headers used
 - `From` — sender identification

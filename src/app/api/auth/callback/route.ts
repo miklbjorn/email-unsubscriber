@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { exchangeCodeForToken } from "@/lib/oauth";
-import { fetchMessageIds, fetchAllMessageHeaders } from "@/lib/gmail";
+import { fetchMessageIds, fetchAllMessageHeaders, fetchUserEmail } from "@/lib/gmail";
 import { analyzeMessages } from "@/lib/analysis";
+import { saveAnalysis } from "@/lib/db";
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
@@ -56,12 +57,11 @@ export async function GET(request: NextRequest) {
       clientSecret,
     });
 
-    // Fetch message IDs from Gmail for the date range
-    const messageIds = await fetchMessageIds(
-      tokenData.access_token,
-      after,
-      before,
-    );
+    // Fetch user email and message data in parallel
+    const [userEmail, messageIds] = await Promise.all([
+      fetchUserEmail(tokenData.access_token),
+      fetchMessageIds(tokenData.access_token, after, before),
+    ]);
 
     // Fetch headers for all messages (concurrency-limited)
     const messageHeaders = await fetchAllMessageHeaders(
@@ -71,6 +71,21 @@ export async function GET(request: NextRequest) {
 
     // Analyze headers: parse, group by sender, compute stats
     const analysis = analyzeMessages(messageHeaders);
+
+    // Save to D1 (best-effort — don't fail the whole request if DB is unavailable)
+    const db = (env as unknown as Record<string, unknown>).DB as D1Database | undefined;
+    if (db) {
+      try {
+        await saveAnalysis(db, {
+          userEmail,
+          dateRangeStart: after,
+          dateRangeEnd: before,
+          analysis,
+        });
+      } catch {
+        // DB save failed — continue without saving
+      }
+    }
 
     // Encode full analysis as base64 JSON to pass via URL
     const analysisJson = JSON.stringify(analysis);
@@ -84,6 +99,16 @@ export async function GET(request: NextRequest) {
     });
 
     const response = NextResponse.redirect(`${origin}?${resultParams}`);
+
+    // Set user session cookie for history access
+    const isSecure = url.protocol === "https:";
+    response.cookies.set("user_email", userEmail, {
+      httpOnly: true,
+      secure: isSecure,
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      path: "/",
+    });
 
     // Clear all OAuth and analysis cookies
     response.cookies.delete("pkce_code_verifier");

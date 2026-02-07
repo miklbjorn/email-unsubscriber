@@ -1,6 +1,7 @@
 import type { AnalysisResult } from "@/lib/analysis";
 import AnalyzeForm from "./analyze-form";
 import AnalysisResults from "./analysis-results";
+import HistoryPage from "./history-page";
 
 function decodeAnalysis(encoded: string): AnalysisResult | null {
 	try {
@@ -45,10 +46,13 @@ export default async function Home({
 						<div className="mt-8">
 							<AnalyzeForm />
 						</div>
+						<div className="mt-8">
+							<HistoryPage />
+						</div>
 					</>
 				) : (
 					/* Default form view */
-					<div className="flex-1 flex items-center justify-center w-full">
+					<div className="flex-1 flex flex-col items-center justify-center w-full gap-8">
 						<div className="max-w-md w-full text-center space-y-4">
 							<p className="text-foreground/60">
 								Scan your Gmail inbox for newsletters and
@@ -56,6 +60,7 @@ export default async function Home({
 							</p>
 							<AnalyzeForm />
 						</div>
+						<HistoryPage />
 					</div>
 				)}
 			</main>

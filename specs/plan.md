@@ -90,7 +90,7 @@ Display the analysis results. Overview stats at top, then a sortable list of sen
 ---
 
 ## Issue 7: D1 database and analysis history
-**Status:** Not started
+**Status:** Done
 
 Set up D1 database for persisting analysis results. Save each completed analysis. Provide a history view to revisit past analyses.
 
@@ -103,7 +103,7 @@ Set up D1 database for persisting analysis results. Save each completed analysis
 - API route `GET /api/analyses/[id]` — get a single analysis with its senders
 - History page/section in the UI
 - Auto-save after analysis completes
-
+- ESSENTIAL that a given user, as per google oauth, can only see their own prior analyses
 ---
 
 ## Issue 8: Polish and error handling

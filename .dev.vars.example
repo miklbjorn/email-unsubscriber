@@ -1,0 +1,5 @@
+NEXTJS_ENV=development
+
+# Google OAuth credentials — set via `wrangler secret put` for production
+GOOGLE_CLIENT_ID=your-client-id-here
+GOOGLE_CLIENT_SECRET=your-client-secret-here

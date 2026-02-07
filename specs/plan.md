@@ -1,16 +1,15 @@
 # Implementation Plan
 
 ## Issue 1: Project scaffolding and layout shell
-**Status:** Not started
+**Status:** Done
 
-Remove Next.js boilerplate. Set up the basic app layout with a header and main content area. Configure Tailwind. Add a `.dev.vars.example` file documenting required env vars (Google OAuth client ID).
+Remove Next.js boilerplate. Set up the basic app layout with a header and main content area. Configure Tailwind. Add a `.dev.vars.example` file documenting required env vars.
 
 **Scope:**
-- Replace `src/app/page.tsx` boilerplate with app shell
-- Update metadata in `layout.tsx`
-- Add `GOOGLE_CLIENT_ID` to wrangler.jsonc vars (public, safe to commit)
-- Add `GOOGLE_CLIENT_SECRET` to `.dev.vars.example` (actual value as Wrangler secret, never committed)
-- Clean up unused boilerplate assets
+- Replace `src/app/page.tsx` boilerplate with app shell (header + centered content area)
+- Update metadata in `layout.tsx` (title, description)
+- Add `.dev.vars.example` with `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` placeholders (both are Cloudflare secrets, never committed)
+- Clean up unused boilerplate assets (next.svg, file.svg, globe.svg, window.svg)
 
 ---
 

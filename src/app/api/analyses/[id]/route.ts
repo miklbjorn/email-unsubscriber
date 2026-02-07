@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getAnalysis } from "@/lib/db";
+import { getSessionEmail } from "@/lib/session";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const userEmail = request.cookies.get("user_email")?.value;
+  const userEmail = await getSessionEmail(request);
   if (!userEmail) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }

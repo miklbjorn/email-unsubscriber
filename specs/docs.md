@@ -32,6 +32,7 @@ Browser                          Cloudflare Worker (Next.js)
 - `src/lib/gmail.ts` — Gmail API utilities (message list fetching with pagination, header fetching with concurrency control, user profile)
 - `src/lib/analysis.ts` — analysis logic: From/List-Unsubscribe header parsing, sender grouping, stats computation
 - `src/lib/db.ts` — D1 database operations: save, list, and get analyses (user-scoped)
+- `src/lib/session.ts` — HMAC-signed session cookie: create, verify, extract user email
 - `src/app/api/auth/login/route.ts` — initiates OAuth, sets cookies (PKCE + date range), redirects to Google
 - `src/app/api/auth/callback/route.ts` — validates state, exchanges code, fetches messages, runs analysis, saves to D1, sets user session
 - `src/app/api/analyses/route.ts` — list past analyses for the authenticated user
@@ -50,8 +51,8 @@ Browser                          Cloudflare Worker (Next.js)
 
 ## History
 - Each analysis is saved to D1 (best-effort) after the OAuth callback completes
-- User email fetched from Gmail profile API during callback, stored in httpOnly session cookie
-- History API routes and UI filter by `user_email` — users can only see their own analyses
+- User email fetched from Gmail profile API during callback, stored in HMAC-signed httpOnly session cookie (see ADR 004)
+- History API routes verify the cookie signature before trusting user identity — users can only see their own analyses
 - D1 tables: `analyses` (metadata) and `analysis_senders` (per-sender rows)
 - Migration: `migrations/0001_create_tables.sql`
 

@@ -121,11 +121,12 @@ Mark unsubscribe links as clicked when the user opens them. Persist the clicked 
 ---
 
 ## Issue 9: Polish and error handling
-**Status:** Not started
+**Status:** In progress
 
 Handle edge cases, improve UX, and harden the app.
 
 **Scope:**
+- ~~Sign session cookie to prevent user impersonation (HMAC-SHA256 with client secret)~~ ✅
 - Handle Gmail API errors gracefully (rate limit, auth expired, network errors)
 - Handle OAuth errors (user denies consent, invalid state)
 - Loading/skeleton states during analysis

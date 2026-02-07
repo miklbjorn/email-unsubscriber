@@ -4,6 +4,7 @@ import { exchangeCodeForToken } from "@/lib/oauth";
 import { fetchMessageIds, fetchAllMessageHeaders, fetchUserEmail } from "@/lib/gmail";
 import { analyzeMessages } from "@/lib/analysis";
 import { saveAnalysis } from "@/lib/db";
+import { createSessionValue, COOKIE_NAME } from "@/lib/session";
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
@@ -104,9 +105,10 @@ export async function GET(request: NextRequest) {
 
     const response = NextResponse.redirect(`${origin}?${resultParams}`);
 
-    // Set user session cookie for history access
+    // Set signed session cookie for history access
     const isSecure = url.protocol === "https:";
-    response.cookies.set("user_email", userEmail, {
+    const sessionValue = await createSessionValue(userEmail, clientSecret);
+    response.cookies.set(COOKIE_NAME, sessionValue, {
       httpOnly: true,
       secure: isSecure,
       sameSite: "lax",

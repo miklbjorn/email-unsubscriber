@@ -28,9 +28,10 @@ Browser                          Cloudflare Worker (Next.js)
 
 ### Key files
 - `src/lib/oauth.ts` — PKCE helpers, auth URL builder, token exchange
-- `src/lib/gmail.ts` — Gmail API utilities (message list fetching with pagination)
+- `src/lib/gmail.ts` — Gmail API utilities (message list fetching with pagination, header fetching with concurrency control)
+- `src/lib/analysis.ts` — analysis logic: From/List-Unsubscribe header parsing, sender grouping, stats computation
 - `src/app/api/auth/login/route.ts` — initiates OAuth, sets cookies (PKCE + date range), redirects to Google
-- `src/app/api/auth/callback/route.ts` — validates state, exchanges code, fetches messages, triggers analysis
+- `src/app/api/auth/callback/route.ts` — validates state, exchanges code, fetches messages, runs analysis
 - `src/app/analyze-form.tsx` — client component with date range picker
 
 ## Analysis flow

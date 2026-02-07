@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { exchangeCodeForToken } from "@/lib/oauth";
 import { fetchMessageIds, fetchAllMessageHeaders } from "@/lib/gmail";
+import { analyzeMessages } from "@/lib/analysis";
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
@@ -68,16 +69,15 @@ export async function GET(request: NextRequest) {
       messageIds,
     );
 
-    // In future issues (5-6), headers will be analyzed and results displayed.
-    // For now, redirect with counts.
-    const unsubscribableCount = messageHeaders.filter(
-      (h) => h.listUnsubscribe !== null,
-    ).length;
+    // Analyze headers: parse, group by sender, compute stats
+    const analysis = analyzeMessages(messageHeaders);
 
     const resultParams = new URLSearchParams({
       auth: "success",
-      totalMessages: String(messageIds.length),
-      unsubscribable: String(unsubscribableCount),
+      totalMessages: String(analysis.totalEmails),
+      unsubscribable: String(analysis.unsubscribableEmails),
+      percentage: String(analysis.percentage),
+      uniqueSenders: String(analysis.uniqueSenders),
     });
 
     const response = NextResponse.redirect(`${origin}?${resultParams}`);

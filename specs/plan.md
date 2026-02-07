@@ -59,7 +59,7 @@ For each message ID, fetch the message metadata (headers only). Extract `From`, 
 ---
 
 ## Issue 5: Analysis logic — parse, group, and compute stats
-**Status:** Not started
+**Status:** Done
 
 Process the fetched headers into the final analysis result. Parse `List-Unsubscribe` headers (can contain `<http://...>`, `<mailto:...>`, or both). Group by sender. Compute stats.
 

@@ -14,7 +14,7 @@ Remove Next.js boilerplate. Set up the basic app layout with a header and main c
 ---
 
 ## Issue 2: Google OAuth sign-in flow
-**Status:** Not started
+**Status:** Done
 
 Implement Google OAuth Authorization Code flow with PKCE. User clicks "Analyze", is redirected to the Google consent screen (requesting `gmail.readonly` scope), then redirected back with an auth code. A Next.js API route (`/api/auth/callback`) exchanges the code for an access token using the client secret and runs the analysis server-side. The token is never returned to the client.
 

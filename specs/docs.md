@@ -18,12 +18,18 @@ Browser                          Cloudflare Worker (Next.js)
 ```
 
 ## Auth flow
-1. User clicks "Sign in with Google"
-2. Browser redirects to Google consent screen (scope: `gmail.readonly`)
-3. Google redirects back to `/api/auth/callback` with auth code
-4. Server exchanges code for access token using client secret (Wrangler secret)
-5. Server runs Gmail analysis with the token, then discards it
-6. Results returned to browser — token never leaves the server
+1. User clicks "Sign in with Google" → hits `GET /api/auth/login`
+2. Server generates PKCE code_verifier/challenge, stores verifier in httpOnly cookie
+3. Server redirects to Google consent screen (scope: `gmail.readonly`, PKCE S256)
+4. Google redirects back to `GET /api/auth/callback` with auth code
+5. Server reads PKCE verifier from cookie, exchanges code for access token using client secret
+6. Server runs Gmail analysis with the token, then discards it
+7. Results returned to browser — token never leaves the server
+
+### Key files
+- `src/lib/oauth.ts` — PKCE helpers, auth URL builder, token exchange
+- `src/app/api/auth/login/route.ts` — initiates OAuth, sets cookies, redirects to Google
+- `src/app/api/auth/callback/route.ts` — validates state, exchanges code, triggers analysis
 
 ## Analysis flow
 1. Server calls `gmail.users.messages.list` with date filters (paginated)

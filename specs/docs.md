@@ -10,9 +10,9 @@ Browser                          Cloudflare Worker (Next.js)
 │ React SPA            │        │ Next.js API routes           │
 │ - OAuth flow trigger │───────▶│ - GET /api/auth/callback     │──▶ Google OAuth
 │ - Results display    │◀───────│   (exchanges code for token, │
-│                      │        │    runs analysis, returns    │
-│                      │        │    results — token never     │
-│                      │        │    sent to browser)          │
+│                      │        │    runs analysis, saves to   │
+│                      │        │    D1 — token never sent     │
+│                      │        │    to browser)               │
 │                      │◀──────▶│ - GET /api/analyses          │──▶ D1
 └──────────────────────┘        └──────────────────────────────┘
 ```
@@ -24,8 +24,8 @@ Browser                          Cloudflare Worker (Next.js)
 4. Server validates state, exchanges code for access token, reads date range from cookies
 5. Server fetches all message IDs from Gmail for the date range (paginated)
 6. Server runs analysis with the token, then discards it
-7. Full analysis result (senders, stats) base64-encoded in redirect URL back to browser
-8. Browser decodes and renders results — token never leaves the server
+7. Analysis is saved to D1 and the user is redirected with `analysis_id`
+8. Browser fetches `/api/analyses/:id` and renders results — token never leaves the server
 
 ### Key files
 - `src/lib/oauth.ts` — PKCE helpers, auth URL builder, token exchange
@@ -39,6 +39,7 @@ Browser                          Cloudflare Worker (Next.js)
 - `src/app/api/analyses/[id]/route.ts` — get a single analysis with senders
 - `src/app/analyze-form.tsx` — client component with date range picker
 - `src/app/analysis-results.tsx` — client component: overview stats, sortable sender list, unsubscribe links
+- `src/app/analysis-by-id.tsx` — client component: fetches analysis by id and renders results
 - `src/app/analysis-history.tsx` — client component: fetches and displays past analyses list
 - `src/app/history-page.tsx` — client component: orchestrates history list and detail view
 
@@ -46,11 +47,11 @@ Browser                          Cloudflare Worker (Next.js)
 1. Server calls `gmail.users.messages.list` with date filters (paginated)
 2. Server calls `gmail.users.messages.get` for each message (metadata only, parallelized)
 3. Server filters messages with `List-Unsubscribe` header, groups by sender
-4. Results returned to client for display
-5. Results saved to D1 for history
+4. Results saved to D1
+5. Client fetches analysis by id for display
 
 ## History
-- Each analysis is saved to D1 (best-effort) after the OAuth callback completes
+- Each analysis is saved to D1 during the OAuth callback before redirecting
 - User email fetched from Gmail profile API during callback, stored in HMAC-signed httpOnly session cookie (see ADR 004)
 - History API routes verify the cookie signature before trusting user identity — users can only see their own analyses
 - D1 tables: `analyses` (metadata) and `analysis_senders` (per-sender rows)

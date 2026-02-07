@@ -43,16 +43,18 @@ Given a date range and access token, fetch all message IDs from Gmail using `mes
 ---
 
 ## Issue 4: Gmail API — fetch message headers
-**Status:** Not started
+**Status:** Done
 
 For each message ID, fetch the message metadata (headers only). Extract `From`, `List-Unsubscribe`, and `List-Unsubscribe-Post` headers. Parallelize requests with concurrency control to respect Gmail rate limits (~50 req/sec). This runs server-side.
 
 **Scope:**
-- Gmail API utility: `fetchMessageHeaders(token, messageId)` → returns relevant headers
+- Gmail API utility: `fetchMessageMetadata(token, messageId)` → returns relevant headers
+- `fetchAllMessageHeaders(token, messageIds, concurrency)` → parallel fetch with worker pool
 - Fetch with `format=metadata` and `metadataHeaders` query params
-- Parallel fetching with concurrency limit (e.g., 20-30 concurrent requests)
-- Progress indicator: "Scanning headers... (X/Y)"
+- Parallel fetching with concurrency limit (default 25 concurrent requests)
+- ~~Progress indicator: "Scanning headers... (X/Y)"~~ — deferred; redirect-based flow doesn't support streaming progress
 - Return structured array: `{ messageId, from, listUnsubscribe, listUnsubscribePost }`
+- Callback route now fetches headers and passes unsubscribable count to UI
 
 ---
 

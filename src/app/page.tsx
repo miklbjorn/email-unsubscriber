@@ -7,6 +7,7 @@ export default async function Home({
 		auth?: string;
 		error?: string;
 		totalMessages?: string;
+		unsubscribable?: string;
 	}>;
 }) {
 	const params = await searchParams;
@@ -25,9 +26,9 @@ export default async function Home({
 					)}
 					{params.auth === "success" && (
 						<div className="rounded-lg bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300 px-4 py-3 text-sm">
-							Found {params.totalMessages ?? "?"} emails in the
-							selected date range. Full analysis coming in a
-							future update.
+							Scanned {params.totalMessages ?? "?"} emails —{" "}
+							{params.unsubscribable ?? "?"} have unsubscribe
+							headers. Full analysis coming in a future update.
 						</div>
 					)}
 					<p className="text-foreground/60">

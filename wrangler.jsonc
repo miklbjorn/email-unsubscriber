@@ -8,7 +8,7 @@
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "email-unsubscriber",
+	"name": "email-unsubscriber-worker",
 	"main": ".open-next/worker.js",
 	"compatibility_date": "2025-12-01",
 	"compatibility_flags": [
@@ -38,8 +38,8 @@
 	"d1_databases": [
 		{
 			"binding": "DB",
-			"database_name": "email-unsubscriber-db",
-			"database_id": "placeholder — run: wrangler d1 create email-unsubscriber-db"
+			"database_name": "email-unsubscriber-d1",
+			"database_id": "00d30a67-a13a-4a12-aaca-b84505242377"
 		}
 	]
 	/**

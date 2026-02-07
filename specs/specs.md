@@ -9,6 +9,7 @@ The UX will be:
 	1. An overview of which fraction of emails in the period were bulk/newsletter emails (i.e., had a List-Unsubscribe header)
 	2. A list of all unique senders including: the number of mails from that sender in the period, the unsubscribe link, and the link type (http or mailto)
 - The idea is that the user can quickly click all the unsubscribe links they want to get rid of
+- When a user clicks an unsubscribe link, it is visually marked as clicked (persisted so it survives page reloads and shows in history)
 - For mailto-type unsubscribe links, display the link type so the user knows what to expect
 - We want to save each of these analyses in an analysis history for later reference
 

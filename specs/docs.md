@@ -18,18 +18,20 @@ Browser                          Cloudflare Worker (Next.js)
 ```
 
 ## Auth flow
-1. User clicks "Sign in with Google" → hits `GET /api/auth/login`
-2. Server generates PKCE code_verifier/challenge, stores verifier in httpOnly cookie
-3. Server redirects to Google consent screen (scope: `gmail.readonly`, PKCE S256)
-4. Google redirects back to `GET /api/auth/callback` with auth code
-5. Server reads PKCE verifier from cookie, exchanges code for access token using client secret
-6. Server runs Gmail analysis with the token, then discards it
+1. User picks a date range (default: last 30 days) and clicks "Analyze Inbox"
+2. `GET /api/auth/login?after=...&before=...` — stores PKCE verifier + date range in httpOnly cookies, redirects to Google consent screen
+3. Google redirects back to `GET /api/auth/callback` with auth code
+4. Server validates state, exchanges code for access token, reads date range from cookies
+5. Server fetches all message IDs from Gmail for the date range (paginated)
+6. Server runs analysis with the token, then discards it
 7. Results returned to browser — token never leaves the server
 
 ### Key files
 - `src/lib/oauth.ts` — PKCE helpers, auth URL builder, token exchange
-- `src/app/api/auth/login/route.ts` — initiates OAuth, sets cookies, redirects to Google
-- `src/app/api/auth/callback/route.ts` — validates state, exchanges code, triggers analysis
+- `src/lib/gmail.ts` — Gmail API utilities (message list fetching with pagination)
+- `src/app/api/auth/login/route.ts` — initiates OAuth, sets cookies (PKCE + date range), redirects to Google
+- `src/app/api/auth/callback/route.ts` — validates state, exchanges code, fetches messages, triggers analysis
+- `src/app/analyze-form.tsx` — client component with date range picker
 
 ## Analysis flow
 1. Server calls `gmail.users.messages.list` with date filters (paginated)

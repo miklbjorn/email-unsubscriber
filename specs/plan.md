@@ -28,7 +28,7 @@ Implement Google OAuth Authorization Code flow with PKCE. User clicks "Analyze",
 ---
 
 ## Issue 3: Gmail API — fetch message list
-**Status:** Not started
+**Status:** Done
 
 Given a date range and access token, fetch all message IDs from Gmail using `messages.list` with date filters. Handle pagination (Gmail returns max 500 per page via `nextPageToken`). This runs server-side.
 
@@ -38,7 +38,7 @@ Given a date range and access token, fetch all message IDs from Gmail using `mes
 - Handle pagination loop (follow `nextPageToken`)
 - Date range picker UI component (default: last 30 days)
 - "Analyze" button kicks off OAuth + server-side analysis
-- Show progress: "Fetching email list... (X emails found)" (if feasible)
+- ~~Show progress: "Fetching email list... (X emails found)" (if feasible)~~ — deferred; redirect-based flow doesn't support streaming progress
 
 ---
 

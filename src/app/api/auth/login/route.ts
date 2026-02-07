@@ -10,8 +10,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "GOOGLE_CLIENT_ID not configured" }, { status: 500 });
   }
 
-  const origin = new URL(request.url).origin;
+  const url = new URL(request.url);
+  const origin = url.origin;
   const redirectUri = `${origin}/api/auth/callback`;
+
+  const after = url.searchParams.get("after") ?? "";
+  const before = url.searchParams.get("before") ?? "";
 
   const codeVerifier = generateCodeVerifier();
   const codeChallenge = await generateCodeChallenge(codeVerifier);
@@ -21,23 +25,19 @@ export async function GET(request: NextRequest) {
 
   const response = NextResponse.redirect(authUrl);
 
-  const isSecure = new URL(request.url).protocol === "https:";
-
-  response.cookies.set("pkce_code_verifier", codeVerifier, {
+  const isSecure = url.protocol === "https:";
+  const cookieOpts = {
     httpOnly: true,
     secure: isSecure,
-    sameSite: "lax",
+    sameSite: "lax" as const,
     maxAge: 600,
     path: "/",
-  });
+  };
 
-  response.cookies.set("oauth_state", state, {
-    httpOnly: true,
-    secure: isSecure,
-    sameSite: "lax",
-    maxAge: 600,
-    path: "/",
-  });
+  response.cookies.set("pkce_code_verifier", codeVerifier, cookieOpts);
+  response.cookies.set("oauth_state", state, cookieOpts);
+  response.cookies.set("analysis_after", after, cookieOpts);
+  response.cookies.set("analysis_before", before, cookieOpts);
 
   return response;
 }

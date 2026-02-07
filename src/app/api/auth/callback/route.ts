@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { exchangeCodeForToken } from "@/lib/oauth";
+import { fetchMessageIds } from "@/lib/gmail";
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
@@ -30,6 +31,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}?error=missing_pkce_verifier`);
   }
 
+  // Get date range from cookies
+  const after = request.cookies.get("analysis_after")?.value ?? "";
+  const before = request.cookies.get("analysis_before")?.value ?? "";
+
   const { env } = await getCloudflareContext();
   const envRecord = env as unknown as Record<string, string>;
   const clientId = envRecord.GOOGLE_CLIENT_ID;
@@ -50,16 +55,27 @@ export async function GET(request: NextRequest) {
       clientSecret,
     });
 
-    // Token obtained successfully. In future issues (3-5), this is where
-    // Gmail analysis will run server-side using tokenData.access_token.
-    // The token is never sent to the client.
-    void tokenData;
+    // Fetch message IDs from Gmail for the date range
+    const messageIds = await fetchMessageIds(
+      tokenData.access_token,
+      after,
+      before,
+    );
 
-    const response = NextResponse.redirect(`${origin}?auth=success`);
+    // In future issues (4-5), message headers will be fetched and analyzed here.
+    // For now, redirect with the total count.
+    const resultParams = new URLSearchParams({
+      auth: "success",
+      totalMessages: String(messageIds.length),
+    });
 
-    // Clear OAuth cookies
+    const response = NextResponse.redirect(`${origin}?${resultParams}`);
+
+    // Clear all OAuth and analysis cookies
     response.cookies.delete("pkce_code_verifier");
     response.cookies.delete("oauth_state");
+    response.cookies.delete("analysis_after");
+    response.cookies.delete("analysis_before");
 
     return response;
   } catch (err) {

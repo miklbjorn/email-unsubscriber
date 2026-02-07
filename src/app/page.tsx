@@ -1,7 +1,13 @@
+import AnalyzeForm from "./analyze-form";
+
 export default async function Home({
 	searchParams,
 }: {
-	searchParams: Promise<{ auth?: string; error?: string }>;
+	searchParams: Promise<{
+		auth?: string;
+		error?: string;
+		totalMessages?: string;
+	}>;
 }) {
 	const params = await searchParams;
 
@@ -19,18 +25,16 @@ export default async function Home({
 					)}
 					{params.auth === "success" && (
 						<div className="rounded-lg bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300 px-4 py-3 text-sm">
-							Authenticated successfully. Analysis will be available in a future update.
+							Found {params.totalMessages ?? "?"} emails in the
+							selected date range. Full analysis coming in a
+							future update.
 						</div>
 					)}
 					<p className="text-foreground/60">
-						Scan your Gmail inbox for newsletters and unsubscribe in one click.
+						Scan your Gmail inbox for newsletters and unsubscribe in
+						one click.
 					</p>
-					<a
-						href="/api/auth/login"
-						className="inline-block rounded-lg bg-foreground text-background px-6 py-3 font-medium hover:opacity-90 transition-opacity"
-					>
-						Sign in with Google
-					</a>
+					<AnalyzeForm />
 				</div>
 			</main>
 		</div>

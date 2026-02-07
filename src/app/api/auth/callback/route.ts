@@ -73,35 +73,64 @@ export async function GET(request: NextRequest) {
     // Analyze headers: parse, group by sender, compute stats
     const analysis = analyzeMessages(messageHeaders);
 
-    // Save to D1 (best-effort — don't fail the whole request if DB is unavailable)
+    // Save to D1 (required for results display; no results are embedded in the URL)
     const db = (env as unknown as Record<string, unknown>).DB as D1Database | undefined;
-    let analysisId: string | null = null;
-    if (db) {
-      try {
-        analysisId = await saveAnalysis(db, {
-          userEmail,
-          dateRangeStart: after,
-          dateRangeEnd: before,
-          analysis,
-        });
-      } catch {
-        // DB save failed — continue without saving
-      }
+    if (!db) {
+      const response = NextResponse.redirect(
+        `${origin}?error=database_not_configured`,
+      );
+
+      const isSecure = url.protocol === "https:";
+      const sessionValue = await createSessionValue(userEmail, clientSecret);
+      response.cookies.set(COOKIE_NAME, sessionValue, {
+        httpOnly: true,
+        secure: isSecure,
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 30, // 30 days
+        path: "/",
+      });
+
+      response.cookies.delete("pkce_code_verifier");
+      response.cookies.delete("oauth_state");
+      response.cookies.delete("analysis_after");
+      response.cookies.delete("analysis_before");
+      return response;
     }
 
-    // Encode full analysis as base64 JSON to pass via URL
-    const analysisJson = JSON.stringify(analysis);
-    const analysisBase64 = btoa(
-      String.fromCharCode(...new TextEncoder().encode(analysisJson)),
-    );
+    let analysisId: string;
+    try {
+      analysisId = await saveAnalysis(db, {
+        userEmail,
+        dateRangeStart: after,
+        dateRangeEnd: before,
+        analysis,
+      });
+    } catch {
+      const response = NextResponse.redirect(
+        `${origin}?error=analysis_save_failed`,
+      );
+
+      const isSecure = url.protocol === "https:";
+      const sessionValue = await createSessionValue(userEmail, clientSecret);
+      response.cookies.set(COOKIE_NAME, sessionValue, {
+        httpOnly: true,
+        secure: isSecure,
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 30, // 30 days
+        path: "/",
+      });
+
+      response.cookies.delete("pkce_code_verifier");
+      response.cookies.delete("oauth_state");
+      response.cookies.delete("analysis_after");
+      response.cookies.delete("analysis_before");
+      return response;
+    }
 
     const resultParams = new URLSearchParams({
       auth: "success",
-      results: analysisBase64,
+      analysis_id: analysisId,
     });
-    if (analysisId) {
-      resultParams.set("analysis_id", analysisId);
-    }
 
     const response = NextResponse.redirect(`${origin}?${resultParams}`);
 

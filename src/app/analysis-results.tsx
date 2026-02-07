@@ -154,6 +154,7 @@ export default function AnalysisResults({
                       href={sender.unsubscribeUrl}
                       target="_blank"
                       rel="noopener noreferrer"
+                      referrerPolicy="no-referrer"
                       onClick={() => handleUnsubscribeClick(sender.email)}
                       className="text-xs font-medium px-3 py-1.5 rounded bg-foreground text-background hover:opacity-90 transition-opacity whitespace-nowrap"
                     >

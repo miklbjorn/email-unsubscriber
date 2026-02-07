@@ -1,19 +1,7 @@
 import Link from "next/link";
-import type { AnalysisResult } from "@/lib/analysis";
 import AnalyzeForm from "./analyze-form";
-import AnalysisResults from "./analysis-results";
+import AnalysisById from "./analysis-by-id";
 import HistoryPage from "./history-page";
-
-function decodeAnalysis(encoded: string): AnalysisResult | null {
-	try {
-		const json = new TextDecoder().decode(
-			Uint8Array.from(atob(encoded), (c) => c.charCodeAt(0)),
-		);
-		return JSON.parse(json) as AnalysisResult;
-	} catch {
-		return null;
-	}
-}
 
 export default async function Home({
 	searchParams,
@@ -21,12 +9,10 @@ export default async function Home({
 	searchParams: Promise<{
 		auth?: string;
 		error?: string;
-		results?: string;
 		analysis_id?: string;
 	}>;
 }) {
 	const params = await searchParams;
-	const analysis = params.results ? decodeAnalysis(params.results) : null;
 
 	return (
 		<div className="min-h-screen flex flex-col">
@@ -42,12 +28,9 @@ export default async function Home({
 				)}
 
 				{/* Results view */}
-				{params.auth === "success" && analysis ? (
+				{params.analysis_id ? (
 					<>
-						<AnalysisResults
-							analysis={analysis}
-							analysisId={params.analysis_id}
-						/>
+						<AnalysisById analysisId={params.analysis_id} />
 						<div className="mt-8">
 							<Link
 								href="/"

@@ -72,12 +72,15 @@ export async function GET(request: NextRequest) {
     // Analyze headers: parse, group by sender, compute stats
     const analysis = analyzeMessages(messageHeaders);
 
+    // Encode full analysis as base64 JSON to pass via URL
+    const analysisJson = JSON.stringify(analysis);
+    const analysisBase64 = btoa(
+      String.fromCharCode(...new TextEncoder().encode(analysisJson)),
+    );
+
     const resultParams = new URLSearchParams({
       auth: "success",
-      totalMessages: String(analysis.totalEmails),
-      unsubscribable: String(analysis.unsubscribableEmails),
-      percentage: String(analysis.percentage),
-      uniqueSenders: String(analysis.uniqueSenders),
+      results: analysisBase64,
     });
 
     const response = NextResponse.redirect(`${origin}?${resultParams}`);

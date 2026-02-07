@@ -1,4 +1,17 @@
+import type { AnalysisResult } from "@/lib/analysis";
 import AnalyzeForm from "./analyze-form";
+import AnalysisResults from "./analysis-results";
+
+function decodeAnalysis(encoded: string): AnalysisResult | null {
+	try {
+		const json = new TextDecoder().decode(
+			Uint8Array.from(atob(encoded), (c) => c.charCodeAt(0)),
+		);
+		return JSON.parse(json) as AnalysisResult;
+	} catch {
+		return null;
+	}
+}
 
 export default async function Home({
 	searchParams,
@@ -6,37 +19,45 @@ export default async function Home({
 	searchParams: Promise<{
 		auth?: string;
 		error?: string;
-		totalMessages?: string;
-		unsubscribable?: string;
+		results?: string;
 	}>;
 }) {
 	const params = await searchParams;
+	const analysis = params.results ? decodeAnalysis(params.results) : null;
 
 	return (
 		<div className="min-h-screen flex flex-col">
 			<header className="border-b border-foreground/10 px-6 py-4">
 				<h1 className="text-xl font-semibold">Email Unsubscriber</h1>
 			</header>
-			<main className="flex-1 flex items-center justify-center p-6">
-				<div className="max-w-md w-full text-center space-y-4">
-					{params.error && (
-						<div className="rounded-lg bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300 px-4 py-3 text-sm">
-							Authentication failed: {params.error}
+			<main className="flex-1 flex flex-col items-center p-6">
+				{/* Error state */}
+				{params.error && (
+					<div className="max-w-md w-full rounded-lg bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300 px-4 py-3 text-sm text-center mb-6">
+						Authentication failed: {params.error}
+					</div>
+				)}
+
+				{/* Results view */}
+				{params.auth === "success" && analysis ? (
+					<>
+						<AnalysisResults analysis={analysis} />
+						<div className="mt-8">
+							<AnalyzeForm />
 						</div>
-					)}
-					{params.auth === "success" && (
-						<div className="rounded-lg bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300 px-4 py-3 text-sm">
-							Scanned {params.totalMessages ?? "?"} emails —{" "}
-							{params.unsubscribable ?? "?"} have unsubscribe
-							headers. Full analysis coming in a future update.
+					</>
+				) : (
+					/* Default form view */
+					<div className="flex-1 flex items-center justify-center w-full">
+						<div className="max-w-md w-full text-center space-y-4">
+							<p className="text-foreground/60">
+								Scan your Gmail inbox for newsletters and
+								unsubscribe in one click.
+							</p>
+							<AnalyzeForm />
 						</div>
-					)}
-					<p className="text-foreground/60">
-						Scan your Gmail inbox for newsletters and unsubscribe in
-						one click.
-					</p>
-					<AnalyzeForm />
-				</div>
+					</div>
+				)}
 			</main>
 		</div>
 	);

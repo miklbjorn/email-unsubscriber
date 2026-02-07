@@ -24,7 +24,8 @@ Browser                          Cloudflare Worker (Next.js)
 4. Server validates state, exchanges code for access token, reads date range from cookies
 5. Server fetches all message IDs from Gmail for the date range (paginated)
 6. Server runs analysis with the token, then discards it
-7. Results returned to browser — token never leaves the server
+7. Full analysis result (senders, stats) base64-encoded in redirect URL back to browser
+8. Browser decodes and renders results — token never leaves the server
 
 ### Key files
 - `src/lib/oauth.ts` — PKCE helpers, auth URL builder, token exchange
@@ -33,6 +34,7 @@ Browser                          Cloudflare Worker (Next.js)
 - `src/app/api/auth/login/route.ts` — initiates OAuth, sets cookies (PKCE + date range), redirects to Google
 - `src/app/api/auth/callback/route.ts` — validates state, exchanges code, fetches messages, runs analysis
 - `src/app/analyze-form.tsx` — client component with date range picker
+- `src/app/analysis-results.tsx` — client component: overview stats, sortable sender list, unsubscribe links
 
 ## Analysis flow
 1. Server calls `gmail.users.messages.list` with date filters (paginated)

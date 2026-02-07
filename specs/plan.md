@@ -75,7 +75,7 @@ Process the fetched headers into the final analysis result. Parse `List-Unsubscr
 ---
 
 ## Issue 6: Results UI
-**Status:** Not started
+**Status:** Done
 
 Display the analysis results. Overview stats at top, then a sortable list of senders with unsubscribe links.
 
